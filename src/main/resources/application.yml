@@ -1,0 +1,37 @@
+server:
+  port: ${PORT:8080} # Valor por defecto si PORT no está configurado
+  url: ${SERVER_URL:http://localhost:8080} # Valor por defecto si SERVER_URL no está configurado
+
+spring:
+  application:
+    name: age-detector
+  data:
+    mongodb:
+      uri: mongodb+srv://oscarochoar_db_user:LdJjGfQlThC2T7E8@cluster0.9pzkvjx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&ssl=true&sslInvalidHostNameAllowed=true&connectTimeoutMS=30000&socketTimeoutMS=30000&serverSelectionTimeoutMS=30000
+      database: age_detector_db
+
+# APIs externas
+external-apis:
+  rapidapi:
+    key: 99893ffdf7msha127d9eab43f25cp112bffjsnd3f5ded4cc44
+    chatgpt:
+      url: https://chatgpt-42.p.rapidapi.com/gpt4o
+      host: chatgpt-42.p.rapidapi.com
+    image-generator:
+      url: https://ai-text-to-image-generator-flux-free-api.p.rapidapi.com/aaaaaaaaaaaaaaaaaiimagegenerator/quick.php
+      host: ai-text-to-image-generator-flux-free-api.p.rapidapi.com
+
+logging:
+  level:
+    "[org.springframework.data.mongodb]": INFO
+    "[org.springframework.web.reactive.function.client]": DEBUG
+    "[org.mongodb.driver]": WARN
+    "[com.mongodb]": WARN
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
