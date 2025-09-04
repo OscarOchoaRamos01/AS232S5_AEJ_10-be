@@ -55,9 +55,13 @@ public class ImageGeneratorServiceImpl implements ImageGeneratorService {
                                 })
                                 .map(apiResponse -> {
                                         // Convertir ImageApiResponse a ImageGeneratorResponse
-                                        if (apiResponse != null && apiResponse.getFinal_result() != null
-                                                        && !apiResponse.getFinal_result().isEmpty()) {
-                                                String imageUrl = apiResponse.getFinal_result().get(0).getOrigin();
+                                        if (apiResponse != null && apiResponse.getCode() == 200
+                                                        && apiResponse.getResult() != null
+                                                        && apiResponse.getResult().getData() != null
+                                                        && apiResponse.getResult().getData().getResults() != null
+                                                        && !apiResponse.getResult().getData().getResults().isEmpty()) {
+                                                String imageUrl = apiResponse.getResult().getData().getResults().get(0)
+                                                                .getOrigin();
                                                 return ImageGeneratorResponse.builder()
                                                                 .image_url(imageUrl)
                                                                 .status("success")

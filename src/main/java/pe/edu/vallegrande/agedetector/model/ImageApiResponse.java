@@ -12,7 +12,26 @@ import java.util.List;
 @Builder
 public class ImageApiResponse {
 
-    private List<ImageResult> final_result;
+    private int code;
+    private String message;
+    private ResultWrapper result;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ResultWrapper {
+        private DataWrapper data;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class DataWrapper {
+        private String prompt_id;
+        private List<ImageResult> results;
+    }
 
     @Data
     @NoArgsConstructor

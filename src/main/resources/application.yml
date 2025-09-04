@@ -1,6 +1,6 @@
 server:
-  port: ${PORT:8080} # Valor por defecto si PORT no está configurado
-  url: ${SERVER_URL:http://localhost:8080} # Valor por defecto si SERVER_URL no está configurado
+  port: ${PORT:8081} # Cambiar puerto por defecto
+  url: ${SERVER_URL:http://localhost:8081} # Actualizar URL
 
 spring:
   application:
