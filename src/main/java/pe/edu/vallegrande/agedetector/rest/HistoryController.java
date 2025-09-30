@@ -1,6 +1,8 @@
 package pe.edu.vallegrande.agedetector.rest;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pe.edu.vallegrande.agedetector.model.entity.ChatConversation;
@@ -8,12 +10,14 @@ import pe.edu.vallegrande.agedetector.model.entity.ImageGeneration;
 import pe.edu.vallegrande.agedetector.repository.ChatConversationRepository;
 import pe.edu.vallegrande.agedetector.repository.ImageGenerationRepository;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/history")
+@CrossOrigin(origins = "*")
 public class HistoryController {
 
     private final ChatConversationRepository chatConversationRepository;
@@ -35,7 +39,9 @@ public class HistoryController {
                     item.put("id", chat.getId());
                     item.put("question", chat.getQuestion());
                     item.put("response", chat.getResponse());
-                    item.put("timestamp", chat.getTimestamp());
+                    // Convertir LocalDateTime a string usando el mismo formato que @JsonFormat
+                    item.put("timestamp", chat.getTimestamp()
+                            .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
                     item.put("success", chat.isSuccess());
                     return item;
                 });
@@ -47,7 +53,9 @@ public class HistoryController {
                     item.put("id", image.getId());
                     item.put("prompt", image.getPrompt());
                     item.put("imageUrl", image.getImageUrl());
-                    item.put("timestamp", image.getTimestamp());
+                    // Convertir LocalDateTime a string usando el mismo formato que @JsonFormat
+                    item.put("timestamp", image.getTimestamp()
+                            .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
                     item.put("success", image.isSuccess());
                     item.put("status", image.getStatus());
                     item.put("message", image.getMessage());
@@ -57,9 +65,10 @@ public class HistoryController {
         // Mergear ambos flujos y ordenar por timestamp descendente
         return Flux.merge(chatHistory, imageHistory)
                 .sort((a, b) -> {
-                    // Ordenar por timestamp descendente
-                    java.time.LocalDateTime timestampA = (java.time.LocalDateTime) a.get("timestamp");
-                    java.time.LocalDateTime timestampB = (java.time.LocalDateTime) b.get("timestamp");
+                    // Ordenar por timestamp descendente (los strings en formato ISO se pueden
+                    // comparar directamente)
+                    String timestampA = (String) a.get("timestamp");
+                    String timestampB = (String) b.get("timestamp");
                     return timestampB.compareTo(timestampA);
                 });
     }
@@ -72,5 +81,15 @@ public class HistoryController {
     @GetMapping("/images")
     public Flux<ImageGeneration> getImageHistory() {
         return imageGenerationRepository.findAllByOrderByTimestampDesc();
+    }
+
+    @GetMapping("/chat/{id}")
+    public Mono<ChatConversation> getChatById(@PathVariable String id) {
+        return chatConversationRepository.findById(id);
+    }
+
+    @GetMapping("/image/{id}")
+    public Mono<ImageGeneration> getImageById(@PathVariable String id) {
+        return imageGenerationRepository.findById(id);
     }
 }

@@ -1,5 +1,6 @@
 package pe.edu.vallegrande.agedetector.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +22,10 @@ public class ChatConversation {
 
     private String question;
     private String response;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime timestamp;
+
     private boolean webAccess;
     private boolean success;
     private String errorMessage;

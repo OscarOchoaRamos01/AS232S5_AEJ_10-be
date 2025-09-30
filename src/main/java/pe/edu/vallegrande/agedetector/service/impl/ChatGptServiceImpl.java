@@ -54,6 +54,14 @@ public class ChatGptServiceImpl implements ChatGptService {
                                 .retrieve()
                                 .bodyToMono(ChatGptResponse.class)
                                 .flatMap(response -> {
+                                        // Determinar si la respuesta es exitosa
+                                        boolean isSuccessful = response.isSuccess() ||
+                                                        (response.getResult() != null
+                                                                        && !response.getResult().isEmpty())
+                                                        ||
+                                                        (response.getContent() != null
+                                                                        && !response.getContent().isEmpty());
+
                                         // Guardar la conversación en la base de datos
                                         ChatConversation conversation = ChatConversation.builder()
                                                         .question(message)
@@ -61,9 +69,12 @@ public class ChatGptServiceImpl implements ChatGptService {
                                                                         : response.getContent())
                                                         .timestamp(LocalDateTime.now())
                                                         .webAccess(request.isWeb_access())
-                                                        .success(response.isSuccess())
+                                                        .success(isSuccessful)
                                                         .errorMessage(response.getError())
                                                         .build();
+
+                                        // Actualizar el response para que también tenga success correcto
+                                        response.setSuccess(isSuccessful);
 
                                         return chatConversationRepository.save(conversation)
                                                         .thenReturn(response);
