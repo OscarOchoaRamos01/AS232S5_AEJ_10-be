@@ -1,46 +1,52 @@
 package pe.edu.vallegrande.agedetector.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import pe.edu.vallegrande.agedetector.model.ImageGeneratorRequest;
-import pe.edu.vallegrande.agedetector.model.ImageGeneratorResponse;
-import pe.edu.vallegrande.agedetector.model.ImageApiResponse;
-import pe.edu.vallegrande.agedetector.model.entity.ImageGeneration;
-import pe.edu.vallegrande.agedetector.repository.ImageGenerationRepository;
+import pe.edu.vallegrande.agedetector.dto.ImageApiResponse;
+import pe.edu.vallegrande.agedetector.dto.ImageGeneratorRequest;
+import pe.edu.vallegrande.agedetector.dto.ImageGeneratorResponse;
 import pe.edu.vallegrande.agedetector.service.ImageGeneratorService;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
-
+@Slf4j
 @Service
 public class ImageGeneratorServiceImpl implements ImageGeneratorService {
 
-        private final WebClient webClient;
-        private final ImageGenerationRepository imageGenerationRepository;
-        private final String apiKey;
-        private final String imageGeneratorUrl;
-        private final String imageGeneratorHost;
+        private final WebClient.Builder webClientBuilder;
 
-        public ImageGeneratorServiceImpl(WebClient.Builder webClientBuilder,
-                        ImageGenerationRepository imageGenerationRepository,
-                        @Value("${external-apis.rapidapi.key}") String apiKey,
-                        @Value("${external-apis.rapidapi.image-generator.url}") String imageGeneratorUrl,
-                        @Value("${external-apis.rapidapi.image-generator.host}") String imageGeneratorHost) {
-                this.webClient = webClientBuilder.build();
-                this.imageGenerationRepository = imageGenerationRepository;
-                this.apiKey = apiKey;
-                this.imageGeneratorUrl = imageGeneratorUrl;
-                this.imageGeneratorHost = imageGeneratorHost;
+        public ImageGeneratorServiceImpl(WebClient.Builder webClientBuilder) {
+                this.webClientBuilder = webClientBuilder;
+        }
+
+        @Value("${external-apis.rapidapi.key}")
+        private String apiKey;
+
+        @Value("${external-apis.rapidapi.image-generator.url}")
+        private String imageGeneratorUrl;
+
+        @Value("${external-apis.rapidapi.image-generator.host}")
+        private String imageGeneratorHost;
+
+        @Override
+        public Mono<ImageGeneratorResponse> generateImage(String conversationId, String prompt) {
+                // Este método mantiene la compatibilidad con el código existente
+                // pero ya no maneja conversaciones directamente
+                return generateImageOnly(prompt);
         }
 
         @Override
-        public Mono<ImageGeneratorResponse> generateImage(String prompt) {
+        public Mono<ImageGeneratorResponse> generateImageOnly(String prompt) {
+                log.info("Generando imagen con prompt: {}", prompt);
+
                 ImageGeneratorRequest request = ImageGeneratorRequest.builder()
                                 .prompt(prompt)
-                                .style_id(4)
-                                .size("1-1")
+                                .style_id(4) // Estilo por defecto según tu ejemplo
+                                .size("1-1") // Formato cuadrado por defecto
                                 .build();
+
+                WebClient webClient = webClientBuilder.build();
 
                 return webClient.post()
                                 .uri(imageGeneratorUrl)
@@ -51,71 +57,65 @@ public class ImageGeneratorServiceImpl implements ImageGeneratorService {
                                 .retrieve()
                                 .bodyToMono(ImageApiResponse.class)
                                 .doOnNext(apiResponse -> {
-                                        System.out.println("🔍 API RESPONSE: " + apiResponse);
+                                        log.info("📊 Respuesta completa de la API: code={}, message={}, result={}",
+                                                        apiResponse.getCode(),
+                                                        apiResponse.getMessage(),
+                                                        apiResponse.getResult() != null ? "presente" : "null");
                                 })
                                 .map(apiResponse -> {
-                                        // Convertir ImageApiResponse a ImageGeneratorResponse
-                                        if (apiResponse != null && apiResponse.getCode() == 200
-                                                        && apiResponse.getResult() != null
-                                                        && apiResponse.getResult().getData() != null
-                                                        && apiResponse.getResult().getData().getResults() != null
-                                                        && !apiResponse.getResult().getData().getResults().isEmpty()) {
-                                                String imageUrl = apiResponse.getResult().getData().getResults().get(0)
-                                                                .getOrigin();
-                                                return ImageGeneratorResponse.builder()
-                                                                .image_url(imageUrl)
-                                                                .status("success")
-                                                                .message("Image generated successfully")
-                                                                .success(true)
-                                                                .build();
-                                        } else {
-                                                return ImageGeneratorResponse.builder()
-                                                                .image_url(null)
-                                                                .status("error")
-                                                                .message("No images generated")
-                                                                .success(false)
-                                                                .build();
+                                        // Extraer la URL de la imagen de la respuesta compleja
+                                        String imageUrl = null;
+                                        if (apiResponse.getResult() != null &&
+                                                        apiResponse.getResult().getData() != null &&
+                                                        apiResponse.getResult().getData().getResults() != null &&
+                                                        !apiResponse.getResult().getData().getResults().isEmpty()) {
+
+                                                // Buscar una imagen que no sea NSFW, si no hay, tomar la primera
+                                                imageUrl = apiResponse.getResult().getData().getResults().stream()
+                                                                .filter(result -> !result.isNsfw())
+                                                                .findFirst()
+                                                                .map(result -> result.getOrigin())
+                                                                .orElse(apiResponse.getResult().getData().getResults()
+                                                                                .get(0).getOrigin());
+
+                                                log.info("✅ Imagen seleccionada de {} opciones disponibles: {}",
+                                                                apiResponse.getResult().getData().getResults().size(),
+                                                                imageUrl);
                                         }
-                                })
-                                .flatMap(response -> {
-                                        // Guardar la generación de imagen en la base de datos
-                                        ImageGeneration imageGeneration = ImageGeneration.builder()
-                                                        .prompt(request.getPrompt())
-                                                        .imageUrl(response.getImage_url())
-                                                        .styleId(request.getStyle_id())
-                                                        .size(request.getSize())
-                                                        .timestamp(LocalDateTime.now())
-                                                        .success(response.isSuccess())
-                                                        .status(response.getStatus())
-                                                        .message(response.getMessage())
-                                                        .build();
 
-                                        return imageGenerationRepository.save(imageGeneration)
-                                                        .thenReturn(response);
+                                        return ImageGeneratorResponse.builder()
+                                                        .image_url(imageUrl)
+                                                        .status(apiResponse.getCode() == 200 ? "success" : "error")
+                                                        .message(apiResponse.getMessage())
+                                                        .success(apiResponse.getCode() == 200 && imageUrl != null)
+                                                        .build();
                                 })
+                                .doOnSuccess(response -> log.info("Imagen generada exitosamente: {}",
+                                                response.isSuccess()))
                                 .onErrorResume(throwable -> {
-                                        System.out.println("❌ ERROR: " + throwable.getMessage());
+                                        log.error("Error generando imagen - Detalles: {}", throwable.getMessage(),
+                                                        throwable);
 
-                                        // Guardar el error en la base de datos
-                                        ImageGeneration imageGeneration = ImageGeneration.builder()
-                                                        .prompt(request.getPrompt())
-                                                        .styleId(request.getStyle_id())
-                                                        .size(request.getSize())
-                                                        .timestamp(LocalDateTime.now())
-                                                        .success(false)
-                                                        .status("error")
-                                                        .errorMessage("Error al generar imagen: "
-                                                                        + throwable.getMessage())
-                                                        .build();
+                                        String errorMessage = "Error al generar imagen";
+                                        if (throwable.getMessage() != null) {
+                                                if (throwable.getMessage().contains("Failed to get task ID")) {
+                                                        errorMessage = "API de imágenes temporalmente no disponible";
+                                                } else if (throwable.getMessage().contains("timeout")) {
+                                                        errorMessage = "Timeout en la API de imágenes";
+                                                } else if (throwable.getMessage().contains("429")) {
+                                                        errorMessage = "Límite de requests alcanzado, intenta más tarde";
+                                                } else {
+                                                        errorMessage = "Error al generar imagen: "
+                                                                        + throwable.getMessage();
+                                                }
+                                        }
 
                                         ImageGeneratorResponse errorResponse = ImageGeneratorResponse.builder()
                                                         .success(false)
-                                                        .message("Error al generar imagen: " + throwable.getMessage())
+                                                        .message(errorMessage)
                                                         .status("error")
                                                         .build();
-
-                                        return imageGenerationRepository.save(imageGeneration)
-                                                        .thenReturn(errorResponse);
+                                        return Mono.just(errorResponse);
                                 });
         }
 }

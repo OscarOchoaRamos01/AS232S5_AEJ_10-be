@@ -1,4 +1,4 @@
-package pe.edu.vallegrande.agedetector.model;
+package pe.edu.vallegrande.agedetector.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,9 +15,4 @@ public class ChatGptResponse {
     private String content;
     private boolean success;
     private String error;
-
-    // Método helper para obtener el contenido de la respuesta
-    public String getResponseContent() {
-        return result != null && !result.isEmpty() ? result : content;
-    }
 }

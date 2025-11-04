@@ -1,4 +1,4 @@
-package pe.edu.vallegrande.agedetector.model;
+package pe.edu.vallegrande.agedetector.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,9 +15,4 @@ public class ImageGeneratorResponse {
     private String status;
     private String message;
     private boolean success;
-
-    // Método helper para obtener la URL de la imagen
-    public String getImageUrl() {
-        return image_url;
-    }
 }

@@ -9,6 +9,11 @@ spring:
     mongodb:
       uri: mongodb+srv://oscarochoar_db_user:LdJjGfQlThC2T7E8@cluster0.9pzkvjx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&ssl=true&sslInvalidHostNameAllowed=true&connectTimeoutMS=30000&socketTimeoutMS=30000&serverSelectionTimeoutMS=30000
       database: age_detector_db
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      adjust-dates-to-context-time-zone: false
 
 # APIs externas
 external-apis:

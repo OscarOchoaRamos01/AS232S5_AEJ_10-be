@@ -1,4 +1,4 @@
-package pe.edu.vallegrande.agedetector.model;
+package pe.edu.vallegrande.agedetector.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

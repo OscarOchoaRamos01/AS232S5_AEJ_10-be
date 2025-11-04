@@ -1,6 +1,5 @@
 package pe.edu.vallegrande.agedetector.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,22 +10,36 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Document(collection = "chat_conversations")
-public class ChatConversation {
+@Document(collection = "messages")
+public class Message {
 
     @Id
     private String id;
 
-    private String question;
-    private String response;
+    private String conversationId;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private MessageType type;
+
+    private String content;
+
+    private String imageUrl; // Para respuestas de imágenes
+
     private LocalDateTime timestamp;
 
-    private boolean webAccess;
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    // Campos existentes para compatibilidad
     private boolean success;
+
     private String errorMessage;
+
+    private String question;
+
+    private String response;
+
+    private boolean webAccess;
 }
