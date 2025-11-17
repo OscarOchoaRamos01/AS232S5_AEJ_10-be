@@ -2,40 +2,18 @@
 # docker-compose -f docker-compose-be.yml down
 
 services:
-  # Servicio de MongoDB
-  mongodb:
-    image: mongo:7.0
-    container_name: age-detector-mongodb
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin123
-      MONGO_INITDB_DATABASE: age_detector_db
-    volumes:
-      - mongodb_data:/data/db
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-    networks:
-      - my-network
-
   # Servicio del Backend
   backend:
     image: oscarochoa01/mis-apis:0971bf5ce52c3a5b986d3996942e5b92c1378398
     container_name: age-detector-be
-    restart: unless-stopped
     ports:
       - "8085:8085"
-    depends_on:
-      - mongodb
     environment:
       # Configuración del servidor
       - PORT=8085
-      - SERVER_URL=http://localhost:8085
-      - SPRING_PROFILES_ACTIVE=dev
       
       # Configuración de MongoDB
-      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/age_detector_db?authSource=admin
+      - MONGODB_URI=mongodb+srv://oscarochoar_db_user:LdJjGfQlThC2T7E8@cluster0.9pzkvjx.mongodb.net/?appName=Cluster0
       - MONGODB_DATABASE=age_detector_db
       
       # Configuración de RapidAPI
@@ -46,11 +24,6 @@ services:
       - RAPIDAPI_IMAGE_HOST=ai-text-to-image-generator-flux-free-api.p.rapidapi.com
     networks:
       - my-network
-
-# Volúmenes para persistir datos
-volumes:
-  mongodb_data:
-    driver: local
 
 # CREAR UNA RED EN ESTE COMPOSE PARA QUE SEA COMPARTIDA A FUTURO CON OTRO COMPOSE
 networks:

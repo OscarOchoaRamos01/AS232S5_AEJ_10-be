@@ -11,6 +11,8 @@ spring:
     mongodb:
       uri: ${MONGODB_URI}
       database: ${MONGODB_DATABASE}
+      #uri: ${MONGODB_URI}
+      #database: ${MONGODB_DATABASE}
   jackson:
     serialization:
       write-dates-as-timestamps: false
