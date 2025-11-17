@@ -1,37 +1,31 @@
+# Configuración base
 server:
-  port: ${PORT:8081} # Cambiar puerto por defecto
-  url: ${SERVER_URL:http://localhost:8081} # Actualizar URL
+  port: ${PORT:8085} # Valor por defecto si PORT no está configurado
 
 spring:
   application:
     name: age-detector
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local} # Perfil por defecto
   data:
     mongodb:
-      uri: mongodb+srv://oscarochoar_db_user:LdJjGfQlThC2T7E8@cluster0.9pzkvjx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&ssl=true&sslInvalidHostNameAllowed=true&connectTimeoutMS=30000&socketTimeoutMS=30000&serverSelectionTimeoutMS=30000
-      database: age_detector_db
+      uri: ${MONGODB_URI}
+      database: ${MONGODB_DATABASE}
   jackson:
     serialization:
       write-dates-as-timestamps: false
     deserialization:
       adjust-dates-to-context-time-zone: false
 
-# APIs externas
-external-apis:
-  rapidapi:
-    key: 99893ffdf7msha127d9eab43f25cp112bffjsnd3f5ded4cc44
-    chatgpt:
-      url: https://chatgpt-42.p.rapidapi.com/gpt4o
-      host: chatgpt-42.p.rapidapi.com
-    image-generator:
-      url: https://ai-text-to-image-generator-flux-free-api.p.rapidapi.com/aaaaaaaaaaaaaaaaaiimagegenerator/quick.php
-      host: ai-text-to-image-generator-flux-free-api.p.rapidapi.com
-
-logging:
-  level:
-    "[org.springframework.data.mongodb]": INFO
-    "[org.springframework.web.reactive.function.client]": DEBUG
-    "[org.mongodb.driver]": WARN
-    "[com.mongodb]": WARN
+# Variables personalizadas para APIs externas
+rapidapi:
+  key: ${RAPIDAPI_KEY}
+  chatgpt:
+    url: ${RAPIDAPI_CHATGPT_URL}
+    host: ${RAPIDAPI_CHATGPT_HOST}
+  image-generator:
+    url: ${RAPIDAPI_IMAGE_URL}
+    host: ${RAPIDAPI_IMAGE_HOST}
 
 springdoc:
   api-docs:
