@@ -11,11 +11,11 @@ services:
     environment:
       # Configuración del servidor
       - PORT=8085
-      
+
       # Configuración de MongoDB
       - MONGODB_URI=mongodb+srv://oscarochoar_db_user:LdJjGfQlThC2T7E8@cluster0.9pzkvjx.mongodb.net/?appName=Cluster0
       - MONGODB_DATABASE=age_detector_db
-      
+
       # Configuración de RapidAPI
       - RAPIDAPI_KEY=99893ffdf7msha127d9eab43f25cp112bffjsnd3f5ded4cc44
       - RAPIDAPI_CHATGPT_URL=https://chatgpt-42.p.rapidapi.com/gpt4o
@@ -28,10 +28,13 @@ services:
 
   # Servicio del Frontend
   frontend:
-    image: oscarochoa01/mis-apis-frontend:6d462adbdb024fcf09806d01c1f3e684f4dafeb3
+    image: oscarochoa01/mis-apis-frontend:8eac1318bda2ab58de8e42c9240f81d85885c34a
     container_name: age-detector-fe
     ports:
       - "5000:80"
+    environment:
+      # URL del backend - cambiar según el entorno
+      - VITE_API_BASE_URL=${BACKEND_URL:-http://localhost:8081/api}
     depends_on:
       - backend
     networks:
