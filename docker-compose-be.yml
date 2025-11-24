@@ -7,7 +7,7 @@ services:
     image: oscarochoa01/mis-apis:0971bf5ce52c3a5b986d3996942e5b92c1378398
     container_name: age-detector-be
     ports:
-      - "8085:8085"
+      - "8081:8085"
     environment:
       # Configuración del servidor
       - PORT=8085
@@ -23,10 +23,23 @@ services:
       - RAPIDAPI_IMAGE_URL=https://ai-text-to-image-generator-flux-free-api.p.rapidapi.com/aaaaaaaaaaaaaaaaaiimagegenerator/quick.php
       - RAPIDAPI_IMAGE_HOST=ai-text-to-image-generator-flux-free-api.p.rapidapi.com
     networks:
-      - my-network
+      - app-network
+    restart: unless-stopped
 
-# CREAR UNA RED EN ESTE COMPOSE PARA QUE SEA COMPARTIDA A FUTURO CON OTRO COMPOSE
+  # Servicio del Frontend
+  frontend:
+    image: oscarochoa01/mis-apis-frontend:6d462adbdb024fcf09806d01c1f3e684f4dafeb3
+    container_name: age-detector-fe
+    ports:
+      - "5000:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+# Red compartida para la comunicación entre servicios
 networks:
-  my-network:
-    name: my-network
+  app-network:
+    name: age-detector-network
     driver: bridge
